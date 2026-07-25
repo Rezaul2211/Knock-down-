@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ShoppingBag, Menu, Search, X, User, Sparkles, ArrowRight, Home } from 'lucide-react';
+import { ShoppingBag, Menu, Search, X, User, Sparkles, ArrowRight, Home, Ruler } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../store/AppContext';
 import { useFlyingCart } from './FlyingCartAnimation';
@@ -7,6 +7,7 @@ import { translations } from '../i18n';
 import { Product } from '../types';
 import { handleImageError } from '../lib/imageUtils';
 import zoponoGoldLogoImg from '../assets/images/zopono_gold_logo_1784923279901.jpg';
+import { VirtualSizeGuideModal } from './VirtualSizeGuideModal';
 
 export function Header() {
   const { language, setLanguage, cart, setIsCartOpen, setIsAdminOpen, products } = useAppContext();
@@ -15,6 +16,7 @@ export function Header() {
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [showVirtualGuide, setShowVirtualGuide] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -402,8 +404,19 @@ export function Header() {
                 className="hover:text-[#B8860B] transition-colors p-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 flex items-center gap-2 font-bold"
               >
                 <Sparkles size={18} className="text-[#B8860B] shrink-0" />
-                <span>{isBn ? '৩ডি ফেব্রিক ক্যাটালগ (Fabric Studio)' : '3D Fabric Studio'}</span>
+                <span>{isBn ? '৩ডি ফেব্রিক ক্যাটালগ' : '3D Fabric Studio'}</span>
               </Link>
+
+              <button
+                onClick={() => {
+                  setShowVirtualGuide(true);
+                  setIsMobileMenuOpen(false);
+                }}
+                className="hover:text-[#B8860B] transition-colors p-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 flex items-center gap-2 font-bold text-left cursor-pointer"
+              >
+                <Ruler size={18} className="text-amber-600 shrink-0" />
+                <span>{isBn ? 'ভার্চুয়াল সাইজ গাইড' : 'Virtual Size Guide'}</span>
+              </button>
 
               <a 
                 href="/#track-order" 
@@ -446,6 +459,12 @@ export function Header() {
             </div>
           </div>
         </div>
+      )}
+      {/* Virtual Size Guide Modal */}
+      {showVirtualGuide && (
+        <VirtualSizeGuideModal
+          onClose={() => setShowVirtualGuide(false)}
+        />
       )}
     </header>
   );

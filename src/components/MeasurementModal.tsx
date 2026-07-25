@@ -4,6 +4,7 @@ import { Product, MeasurementProfile } from '../types';
 import { useAppContext } from '../store/AppContext';
 import { translations } from '../i18n';
 import { SizeGuideModal } from './SizeGuideModal';
+import { VirtualSizeGuideModal } from './VirtualSizeGuideModal';
 
 interface MeasurementModalProps {
   product: Product;
@@ -124,6 +125,7 @@ export function MeasurementModal({ product, onClose, onProceedToCheckout }: Meas
   const [activeGuideStep, setActiveGuideStep] = useState<number>(0);
   const [showGuide, setShowGuide] = useState<boolean>(true);
   const [showSizeGuide, setShowSizeGuide] = useState<boolean>(false);
+  const [showVirtualGuide, setShowVirtualGuide] = useState<boolean>(false);
 
   const [measurements, setMeasurements] = useState({
     length: '40', chest: '38', waist: '36', shoulder: '17.5', sleeve: '24', neck: '15', hip: '40', armhole: '18'
@@ -323,7 +325,7 @@ export function MeasurementModal({ product, onClose, onProceedToCheckout }: Meas
           {/* Quick Size Preset Pills */}
           <div className="bg-[#FAF9F6] p-4 rounded-2xl border border-[#6A4C6D]/10 space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-xs font-bold uppercase tracking-wider text-[#6A4C6D]">
                   {isBn ? 'স্ট্যান্ডার্ড সাইজ নির্বাচন করুন:' : 'Standard Size Presets:'}
                 </span>
@@ -335,6 +337,15 @@ export function MeasurementModal({ product, onClose, onProceedToCheckout }: Meas
                 >
                   <Ruler className="w-3 h-3 text-[#B8860B]" />
                   <span>{isBn ? 'সাইজ চার্ট' : 'Size Chart'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowVirtualGuide(true)}
+                  className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-900 bg-amber-100 hover:bg-amber-200 px-2.5 py-1 rounded-full border border-amber-300 transition-all cursor-pointer shadow-2xs"
+                >
+                  <Sparkles className="w-3 h-3 text-amber-600" />
+                  <span>{isBn ? 'ভার্চুয়াল সাইজ গাইড' : 'Virtual Size Guide'}</span>
                 </button>
               </div>
 
@@ -511,6 +522,20 @@ export function MeasurementModal({ product, onClose, onProceedToCheckout }: Meas
             const cleanSize = selectedSize.split(' ')[0]; // e.g. 'S', 'M', 'L'
             if (standardPresets[cleanSize]) {
               handleSelectPreset(cleanSize);
+            }
+          }}
+        />
+      )}
+
+      {/* Virtual Size Guide Modal Popup */}
+      {showVirtualGuide && (
+        <VirtualSizeGuideModal
+          initialCategory={product.category}
+          onClose={() => setShowVirtualGuide(false)}
+          onApplyProfile={(profile) => {
+            setShowVirtualGuide(false);
+            if (profile.measurements) {
+              setMeasurements(prev => ({ ...prev, ...profile.measurements }));
             }
           }}
         />

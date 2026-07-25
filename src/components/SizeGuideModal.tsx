@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, Ruler, HelpCircle, Check, ArrowRight, Sparkles, Globe2, Calculator, Info } from 'lucide-react';
+import { X, Ruler, HelpCircle, Check, ArrowRight, Sparkles, Globe2, Calculator, Info, Zap } from 'lucide-react';
 import { useAppContext } from '../store/AppContext';
+import { VirtualSizeGuideModal } from './VirtualSizeGuideModal';
 
 interface SizeGuideModalProps {
   category?: string;
@@ -68,6 +69,7 @@ export function SizeGuideModal({ category, subcategory, onClose, onSelectSize }:
   const [unit, setUnit] = useState<Unit>('in');
   const [userChestInput, setUserChestInput] = useState<string>('');
   const [calculatedSize, setCalculatedSize] = useState<string | null>(null);
+  const [showVirtualGuide, setShowVirtualGuide] = useState<boolean>(false);
 
   // Lock background page body scroll when modal is open
   useEffect(() => {
@@ -167,6 +169,30 @@ export function SizeGuideModal({ category, subcategory, onClose, onSelectSize }:
         {/* Scrollable Body Content */}
         <div className="p-4 sm:p-6 overflow-y-auto space-y-6">
           
+          {/* Interactive Virtual Size Guide Studio Banner */}
+          <div className="bg-slate-900 text-white p-4 sm:p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 border border-slate-800 shadow-lg">
+            <div className="space-y-1 text-center sm:text-left">
+              <div className="inline-flex items-center gap-1.5 bg-amber-500/20 text-amber-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase border border-amber-500/30">
+                <Sparkles className="w-3 h-3 text-amber-400" />
+                <span>{isBn ? 'নতুন থ্রি-ডি ফিচার' : 'Interactive Feature'}</span>
+              </div>
+              <h4 className="text-sm sm:text-base font-serif font-bold text-white">
+                {isBn ? 'ভার্চুয়াল সাইজ ও মেজারমেন্ট গাইড স্টুডিও' : 'Virtual Size & Measurement Guide Studio'}
+              </h4>
+              <p className="text-slate-300 text-xs">
+                {isBn ? 'ইন্টারেক্টিভ ডায়গ্রাম দেখে নিজের বডির সঠিক মাপ মেপে সেভ করুন' : 'Step-by-step visual self-measurement wizard with vector body diagrams'}
+              </p>
+            </div>
+
+            <button
+              onClick={() => setShowVirtualGuide(true)}
+              className="py-2.5 px-4 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold uppercase tracking-wider shrink-0 transition-all flex items-center gap-1.5 shadow-md cursor-pointer"
+            >
+              <Zap className="w-4 h-4 fill-current" />
+              <span>{isBn ? 'ভার্চুয়াল গাইড ওপেন করুন' : 'Launch Virtual Guide'}</span>
+            </button>
+          </div>
+
           {/* Top Controls: Category Tabs & Unit Switcher */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-2 sm:p-2.5 rounded-2xl border border-[#E0D9CC] shadow-2xs">
             
@@ -448,6 +474,19 @@ export function SizeGuideModal({ category, subcategory, onClose, onSelectSize }:
         </div>
 
       </div>
+
+      {showVirtualGuide && (
+        <VirtualSizeGuideModal
+          initialCategory={category}
+          onClose={() => setShowVirtualGuide(false)}
+          onApplyProfile={(profile) => {
+            setShowVirtualGuide(false);
+            if (onSelectSize) {
+              onSelectSize(profile.name);
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

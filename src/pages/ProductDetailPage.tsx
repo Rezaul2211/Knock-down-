@@ -9,6 +9,7 @@ import { translations } from '../i18n';
 import { MeasurementModal } from '../components/MeasurementModal';
 import { CheckoutModal } from '../components/CheckoutModal';
 import { SizeGuideModal } from '../components/SizeGuideModal';
+import { VirtualSizeGuideModal } from '../components/VirtualSizeGuideModal';
 import { FabricStudioModal } from '../components/FabricStudioModal';
 import { FabricMagnifierModal } from '../components/FabricMagnifierModal';
 import { handleImageError } from '../lib/imageUtils';
@@ -30,6 +31,7 @@ export function ProductDetailPage() {
   const [showMeasurement, setShowMeasurement] = useState(false);
   const [showDirectCheckout, setShowDirectCheckout] = useState(false);
   const [showSizeGuide, setShowSizeGuide] = useState(false);
+  const [showVirtualGuide, setShowVirtualGuide] = useState(false);
   const [showFabricStudio, setShowFabricStudio] = useState(false);
   const [inspectFabric, setInspectFabric] = useState<FabricSwatch | null>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -204,15 +206,26 @@ export function ProductDetailPage() {
                   )}
                 </div>
 
-                {/* Size Guide Popup Trigger Button */}
-                <button
-                  type="button"
-                  onClick={() => setShowSizeGuide(true)}
-                  className="inline-flex items-center gap-1.5 text-sm font-bold text-[#B8860B] hover:text-[#2C2821] bg-[#FAF6EE] hover:bg-[#F3EFE6] px-4 py-2 rounded-full border border-[#E0D9CC] transition-all cursor-pointer shadow-2xs group"
-                >
-                  <Ruler className="w-4 h-4 text-[#B8860B] group-hover:scale-110 transition-transform" />
-                  <span>{isBn ? 'সাইজ গাইড' : 'Size Guide'}</span>
-                </button>
+                {/* Size Guide Popup Trigger Buttons */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => setShowSizeGuide(true)}
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-[#B8860B] hover:text-[#2C2821] bg-[#FAF6EE] hover:bg-[#F3EFE6] px-3.5 py-2 rounded-full border border-[#E0D9CC] transition-all cursor-pointer shadow-2xs group"
+                  >
+                    <Ruler className="w-4 h-4 text-[#B8860B] group-hover:scale-110 transition-transform" />
+                    <span>{isBn ? 'সাইজ চার্ট' : 'Size Chart'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowVirtualGuide(true)}
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-900 hover:text-amber-950 bg-amber-100 hover:bg-amber-200 px-3.5 py-2 rounded-full border border-amber-300 transition-all cursor-pointer shadow-2xs group"
+                  >
+                    <Sparkles className="w-4 h-4 text-amber-600 group-hover:rotate-12 transition-transform" />
+                    <span>{isBn ? 'ভার্চুয়াল সাইজ গাইড' : 'Virtual Size Guide'}</span>
+                  </button>
+                </div>
               </div>
 
               {/* Fabric Swatch Selector Bar */}
@@ -364,6 +377,14 @@ export function ProductDetailPage() {
           category={product.category}
           subcategory={product.subcategory}
           onClose={() => setShowSizeGuide(false)}
+        />
+      )}
+
+      {/* Virtual Size Guide Modal Popup */}
+      {showVirtualGuide && (
+        <VirtualSizeGuideModal
+          initialCategory={product.category}
+          onClose={() => setShowVirtualGuide(false)}
         />
       )}
 
