@@ -3,8 +3,9 @@ import { fabricSwatches } from '../data/fabrics';
 import { FabricSwatch, FabricCategory } from '../types';
 import { FabricMagnifierModal } from '../components/FabricMagnifierModal';
 import { FabricStudioModal } from '../components/FabricStudioModal';
+import { FabricCompareModal } from '../components/FabricCompareModal';
 import { useAppContext } from '../store/AppContext';
-import { Search, Filter, Sparkles, Eye, Scissors, MapPin, Feather, Check, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Search, Filter, Sparkles, Eye, Scissors, MapPin, Feather, Check, ArrowRight, ShieldCheck, Scale, Plus, X } from 'lucide-react';
 
 export function FabricCatalogPage() {
   const { language } = useAppContext();
@@ -17,6 +18,37 @@ export function FabricCatalogPage() {
   const [inspectFabric, setInspectFabric] = useState<FabricSwatch | null>(null);
   const [studioFabric, setStudioFabric] = useState<FabricSwatch | null>(null);
   const [showStudio, setShowStudio] = useState(false);
+
+  // Compare Fabrics state
+  const [compareList, setCompareList] = useState<FabricSwatch[]>([]);
+  const [showCompareModal, setShowCompareModal] = useState(false);
+
+  const toggleCompare = (fab: FabricSwatch) => {
+    if (compareList.some(f => f.id === fab.id)) {
+      setCompareList(compareList.filter(f => f.id !== fab.id));
+    } else {
+      if (compareList.length >= 2) {
+        // Replace second one or notify
+        setCompareList([compareList[0], fab]);
+      } else {
+        setCompareList([...compareList, fab]);
+      }
+    }
+  };
+
+  const openCompareModalWithFabrics = (fab1?: FabricSwatch, fab2?: FabricSwatch) => {
+    if (fab1 && fab2) {
+      setCompareList([fab1, fab2]);
+    } else if (compareList.length < 2) {
+      const remaining = fabricSwatches.filter(f => !compareList.some(c => c.id === f.id));
+      if (compareList.length === 0) {
+        setCompareList([fabricSwatches[0], fabricSwatches[1]]);
+      } else if (compareList.length === 1) {
+        setCompareList([compareList[0], remaining[0] || fabricSwatches[0]]);
+      }
+    }
+    setShowCompareModal(true);
+  };
 
   // Filter and sort fabrics
   const filteredFabrics = fabricSwatches
@@ -66,13 +98,23 @@ export function FabricCatalogPage() {
                 : 'Explore Egyptian Giza Cotton, Italian Super 150s Wool, Como Mulberry Silk, and UNESCO Heritage Jamdani weave in interactive 3D simulation.'}
             </p>
 
-            <button
-              onClick={() => open3DStudioWithFabric(fabricSwatches[0])}
-              className="mt-2 py-3.5 px-6 bg-amber-600 hover:bg-amber-500 text-white rounded-2xl font-bold uppercase tracking-wider text-xs transition-all flex items-center gap-2 shadow-lg"
-            >
-              <Scissors className="w-4 h-4" />
-              <span>{isBn ? '৩ডি ফেব্রিক স্টুডিও ওপেন করুন' : 'Launch 3D Visualizer Studio'}</span>
-            </button>
+            <div className="flex flex-wrap items-center gap-3 pt-2">
+              <button
+                onClick={() => open3DStudioWithFabric(fabricSwatches[0])}
+                className="py-3.5 px-6 bg-amber-600 hover:bg-amber-500 text-white rounded-2xl font-bold uppercase tracking-wider text-xs transition-all flex items-center gap-2 shadow-lg cursor-pointer"
+              >
+                <Scissors className="w-4 h-4" />
+                <span>{isBn ? '৩ডি ফেব্রিক স্টুডিও ওপেন করুন' : 'Launch 3D Visualizer Studio'}</span>
+              </button>
+
+              <button
+                onClick={() => openCompareModalWithFabrics()}
+                className="py-3.5 px-6 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 rounded-2xl font-bold uppercase tracking-wider text-xs transition-all flex items-center gap-2 shadow-lg cursor-pointer"
+              >
+                <Scale className="w-4 h-4 text-amber-400" />
+                <span>{isBn ? 'ফেব্রিক তুলনামূলক গাইড (Compare)' : 'Compare Fabrics Side-by-Side'}</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -212,7 +254,7 @@ export function FabricCatalogPage() {
                 </div>
 
                 {/* Price & Action Row */}
-                <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
                   <div>
                     <span className="text-[10px] text-slate-400 font-bold block uppercase">
                       {isBn ? 'মূল্য/গজ' : 'Price / Yard'}
@@ -222,13 +264,28 @@ export function FabricCatalogPage() {
                     </span>
                   </div>
 
-                  <button
-                    onClick={() => open3DStudioWithFabric(fab)}
-                    className="py-2.5 px-4 bg-slate-900 hover:bg-amber-700 text-white rounded-xl font-bold uppercase text-[11px] tracking-wider transition-colors flex items-center gap-1.5 shadow-xs"
-                  >
-                    <span>{isBn ? '৩ডি ভিজ্যুয়ালাইজ' : '3D Visualize'}</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => toggleCompare(fab)}
+                      className={`p-2.5 rounded-xl border text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                        compareList.some(c => c.id === fab.id)
+                          ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-xs'
+                          : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
+                      }`}
+                      title={isBn ? 'তুলনা তালিকায় যোগ করুন' : 'Compare this fabric'}
+                    >
+                      <Scale className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">{compareList.some(c => c.id === fab.id) ? (isBn ? 'তুলনায়' : 'Comparing') : (isBn ? 'তুলনা' : 'Compare')}</span>
+                    </button>
+
+                    <button
+                      onClick={() => open3DStudioWithFabric(fab)}
+                      className="py-2.5 px-3 bg-slate-900 hover:bg-amber-700 text-white rounded-xl font-bold uppercase text-[11px] tracking-wider transition-colors flex items-center gap-1 shadow-xs cursor-pointer"
+                    >
+                      <span>{isBn ? '৩ডি' : '3D'}</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
 
               </div>
@@ -237,6 +294,53 @@ export function FabricCatalogPage() {
         </div>
 
       </div>
+
+      {/* Floating Compare Drawer Tray when items are selected */}
+      {compareList.length > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white p-3 sm:p-4 rounded-3xl shadow-2xl border border-amber-500/40 flex items-center gap-4 max-w-xl w-[92%] sm:w-auto animate-in slide-in-from-bottom-6 duration-300">
+          <div className="flex items-center gap-2">
+            <Scale className="w-5 h-5 text-amber-400 shrink-0" />
+            <span className="text-xs font-bold text-amber-300 whitespace-nowrap">
+              {isBn ? `তুলনা তালিকা (${compareList.length}/২):` : `Compare Tray (${compareList.length}/2):`}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-none py-1">
+            {compareList.map(item => (
+              <div key={item.id} className="relative bg-slate-800 border border-slate-700 rounded-xl px-2.5 py-1 flex items-center gap-2 text-xs shrink-0">
+                <img src={item.highResImage} alt={item.nameEn} className="w-6 h-6 rounded-md object-cover" />
+                <span className="font-bold text-slate-200 max-w-[100px] truncate">{isBn ? item.nameBn : item.nameEn}</span>
+                <button
+                  onClick={() => toggleCompare(item)}
+                  className="text-slate-400 hover:text-white p-0.5"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <button
+            onClick={() => openCompareModalWithFabrics()}
+            className="py-2.5 px-5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs rounded-2xl uppercase tracking-wider transition-all whitespace-nowrap shadow-lg cursor-pointer"
+          >
+            {isBn ? 'এখনই তুলনা করুন' : 'Compare Now'}
+          </button>
+        </div>
+      )}
+
+      {/* Fabric Specification Comparison Modal */}
+      {showCompareModal && (
+        <FabricCompareModal
+          initialFabricA={compareList[0]}
+          initialFabricB={compareList[1]}
+          onClose={() => setShowCompareModal(false)}
+          onSelectFabric={(fab) => {
+            setShowCompareModal(false);
+            open3DStudioWithFabric(fab);
+          }}
+        />
+      )}
 
       {/* Magnifier Inspection Modal */}
       {inspectFabric && (

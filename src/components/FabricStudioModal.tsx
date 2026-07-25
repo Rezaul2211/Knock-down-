@@ -3,9 +3,10 @@ import { FabricSwatch, FabricCategory, Product } from '../types';
 import { fabricSwatches } from '../data/fabrics';
 import { FabricVisualizerCanvas, GarmentType } from './FabricVisualizerCanvas';
 import { FabricMagnifierModal } from './FabricMagnifierModal';
+import { FabricCompareModal } from './FabricCompareModal';
 import { useAppContext } from '../store/AppContext';
 import { useFlyingCart } from './FlyingCartAnimation';
-import { X, Search, Sparkles, Filter, Check, ShoppingBag, Eye, Layers, Scissors, RefreshCw, ArrowRight } from 'lucide-react';
+import { X, Search, Sparkles, Filter, Check, ShoppingBag, Eye, Layers, Scissors, RefreshCw, ArrowRight, Scale } from 'lucide-react';
 
 interface FabricStudioModalProps {
   initialProduct?: Product | null;
@@ -43,6 +44,7 @@ export function FabricStudioModal({
   const [selectedCategory, setSelectedCategory] = useState<FabricCategory | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [inspectFabric, setInspectFabric] = useState<FabricSwatch | null>(null);
+  const [showCompareSpecModal, setShowCompareSpecModal] = useState(false);
   const [added, setAdded] = useState(false);
 
   // Filtered fabric catalog
@@ -339,13 +341,22 @@ export function FabricStudioModal({
                 <span className="font-bold text-amber-400 uppercase tracking-wider">
                   Active Swatch: {selectedFabric.code}
                 </span>
-                <button
-                  onClick={() => setInspectFabric(selectedFabric)}
-                  className="text-[10px] text-slate-300 hover:text-white underline flex items-center gap-1"
-                >
-                  <Eye className="w-3 h-3 text-amber-400" />
-                  <span>Inspect 4x Micro Zoom</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowCompareSpecModal(true)}
+                    className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full hover:bg-amber-500/30 font-bold flex items-center gap-1 cursor-pointer"
+                  >
+                    <Scale className="w-3 h-3 text-amber-400" />
+                    <span>Compare Specs</span>
+                  </button>
+                  <button
+                    onClick={() => setInspectFabric(selectedFabric)}
+                    className="text-[10px] text-slate-300 hover:text-white underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <Eye className="w-3 h-3 text-amber-400" />
+                    <span>Zoom</span>
+                  </button>
+                </div>
               </div>
               <p className="text-[11px] text-slate-300 line-clamp-2">
                 {isBn ? selectedFabric.descriptionBn : selectedFabric.descriptionEn}
@@ -357,6 +368,19 @@ export function FabricStudioModal({
         </div>
 
       </div>
+
+      {/* Side-by-Side Spec Comparison Modal */}
+      {showCompareSpecModal && (
+        <FabricCompareModal
+          initialFabricA={selectedFabric}
+          initialFabricB={compareFabric || (fabricSwatches.find(f => f.id !== selectedFabric.id) || fabricSwatches[1])}
+          onClose={() => setShowCompareSpecModal(false)}
+          onSelectFabric={(fab) => {
+            setSelectedFabric(fab);
+            setShowCompareSpecModal(false);
+          }}
+        />
+      )}
 
       {/* Fabric Magnifier Inspect Overlay */}
       {inspectFabric && (

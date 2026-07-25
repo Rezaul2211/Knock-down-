@@ -3,6 +3,7 @@ import { X, ArrowLeft, CheckCircle, Printer, MessageCircle, ShieldCheck } from '
 import { useAppContext } from '../store/AppContext';
 import { translations } from '../i18n';
 import { Order } from '../types';
+import { TailoringJourneyProgressBar } from './TailoringJourneyProgressBar';
 
 interface CheckoutModalProps {
   total: number;
@@ -38,7 +39,7 @@ export function CheckoutModal({ total, onClose }: CheckoutModalProps) {
     const newOrder: Order = {
       id: `ZOP-${Math.floor(Math.random() * 1000000)}`,
       date: new Date().toISOString(),
-      status: 'pending',
+      status: 'processing',
       items: cart,
       total,
       customerDetails: formData
@@ -61,21 +62,32 @@ export function CheckoutModal({ total, onClose }: CheckoutModalProps) {
 
   if (isSuccess && currentOrder) {
     return (
-      <div className="fixed inset-0 z-[110] flex items-center justify-center p-0 sm:p-4 bg-[#1E293B]/60 backdrop-blur-xs print:bg-white print:p-0">
-        <div className="bg-[#FAF9F6] w-full h-full sm:h-auto sm:max-w-lg sm:rounded-3xl shadow-2xl p-6 sm:p-10 text-center animate-in zoom-in-95 print:shadow-none print:w-full print:max-w-none print:p-4 border border-[#6A4C6D]/10 overflow-y-auto">
-          <div className="print:hidden flex justify-center mb-4">
+      <div className="fixed inset-0 z-[110] flex items-center justify-center p-2 sm:p-4 bg-[#1E293B]/60 backdrop-blur-xs print:bg-white print:p-0">
+        <div className="bg-[#FAF9F6] w-full max-w-2xl max-h-[92vh] sm:rounded-3xl shadow-2xl p-5 sm:p-8 text-center animate-in zoom-in-95 print:shadow-none print:w-full print:max-w-none print:p-4 border border-[#6A4C6D]/10 overflow-y-auto space-y-6">
+          <div className="print:hidden flex justify-center">
             <div className="w-14 h-14 bg-[#25D366]/10 rounded-full flex items-center justify-center text-[#25D366]">
               <CheckCircle size={32} />
             </div>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-serif italic text-[#1E293B] mb-1 print:text-left">
-            {isBn ? 'অর্ডার নিশ্চিত করা হয়েছে!' : 'Order Confirmed!'}
-          </h2>
-          <p className="text-xs text-[#1E293B]/60 mb-6 print:text-left">
-            {isBn ? 'অর্ডার আইডি:' : 'Order ID:'} <span className="font-bold text-[#1E293B]">{currentOrder.id}</span>
-          </p>
+          <div className="space-y-1">
+            <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#1E293B] print:text-left">
+              {isBn ? 'অর্ডার সফলভাবে গ্রহন করা হয়েছে!' : 'Order Confirmed!'}
+            </h2>
+            <p className="text-xs text-[#1E293B]/60 print:text-left">
+              {isBn ? 'ট্র্যাকিং আইডি:' : 'Tracking Order ID:'} <span className="font-extrabold text-[#1E293B] text-sm">{currentOrder.id}</span>
+            </p>
+          </div>
 
-          <div className="text-left bg-white rounded-2xl p-5 mb-6 border border-[#6A4C6D]/10 shadow-xs">
+          {/* Visual Step-by-step Tailoring Progress Journey Bar */}
+          <div className="text-left print:hidden">
+            <TailoringJourneyProgressBar
+              currentStage="measurement"
+              orderId={currentOrder.id}
+              allowInteractiveStageChange={true}
+            />
+          </div>
+
+          <div className="text-left bg-white rounded-2xl p-5 border border-[#6A4C6D]/10 shadow-xs">
             <h3 className="text-[10px] uppercase font-bold text-[#6A4C6D] mb-3 tracking-widest">Tailor Slip Summary</h3>
             <p className="text-xs text-[#1E293B] mb-1"><span className="font-semibold">Customer:</span> {currentOrder.customerDetails.name}</p>
             <p className="text-xs text-[#1E293B] mb-4"><span className="font-semibold">Phone:</span> {currentOrder.customerDetails.phone}</p>
@@ -96,24 +108,27 @@ export function CheckoutModal({ total, onClose }: CheckoutModalProps) {
             </div>
           </div>
 
-          <div className="flex flex-col gap-2.5 print:hidden">
+          <div className="flex flex-col sm:flex-row gap-2.5 print:hidden">
             <button
               onClick={handleWhatsApp}
-              className="w-full py-3.5 bg-[#25D366] text-white rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-opacity-90 transition-colors shadow-md"
+              className="flex-1 py-3.5 bg-[#25D366] text-white rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-opacity-90 transition-colors shadow-md cursor-pointer"
             >
-              <MessageCircle size={18} /> {isBn ? 'হোয়াটসঅ্যাপে পাঠান' : 'Send Slip via WhatsApp'}
+              <MessageCircle size={18} /> {isBn ? 'হোয়াটসঅ্যাপে স্লিপ পাঠান' : 'Send Slip via WhatsApp'}
             </button>
             <button
               onClick={handlePrint}
-              className="w-full py-3 bg-white border border-[#6A4C6D]/20 text-[#1E293B] rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors"
+              className="flex-1 py-3.5 bg-white border border-[#6A4C6D]/20 text-[#1E293B] rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors cursor-pointer"
             >
               <Printer size={16} /> {isBn ? 'টেইলার স্লিপ প্রিন্ট করুন' : 'Download Tailor Slip'}
             </button>
+          </div>
+
+          <div className="pt-2">
             <button
               onClick={() => { onClose(); setIsCartOpen(false); }}
-              className="mt-2 text-xs font-bold text-[#6A4C6D] hover:underline"
+              className="px-6 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-slate-800 transition-colors cursor-pointer"
             >
-              {isBn ? 'উইন্ডো বন্ধ করুন' : 'Close Window'}
+              {isBn ? 'শপিং চালিয়ে যান' : 'Continue Shopping'}
             </button>
           </div>
         </div>

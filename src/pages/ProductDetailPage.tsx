@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ShoppingBag, Ruler, Zap, ShieldCheck, Sparkles, Check, ArrowLeft, X, Scissors, Eye } from 'lucide-react';
+import { ShoppingBag, Ruler, Zap, ShieldCheck, Sparkles, Check, ArrowLeft, X, Scissors, Eye, Award } from 'lucide-react';
 import { Product, FabricSwatch } from '../types';
 import { fabricSwatches } from '../data/fabrics';
 import { useAppContext } from '../store/AppContext';
@@ -12,6 +12,7 @@ import { SizeGuideModal } from '../components/SizeGuideModal';
 import { VirtualSizeGuideModal } from '../components/VirtualSizeGuideModal';
 import { FabricStudioModal } from '../components/FabricStudioModal';
 import { FabricMagnifierModal } from '../components/FabricMagnifierModal';
+import { TailoringJourneyProgressBar } from '../components/TailoringJourneyProgressBar';
 import { handleImageError } from '../lib/imageUtils';
 
 import { FAQAccordion } from '../components/FAQAccordion';
@@ -347,6 +348,14 @@ export function ProductDetailPage() {
                 <Zap className="w-5 h-5 fill-current" />
                 <span>{isBn ? 'চেকআউট' : 'Checkout'}</span>
               </button>
+            </div>
+
+            {/* Bespoke Tailoring Journey Steps Preview */}
+            <div className="pt-8 mt-8 border-t border-[#6A4C6D]/10">
+              <TailoringJourneyProgressBar 
+                currentStage="measurement"
+                allowInteractiveStageChange={true}
+              />
             </div>
             
             {/* FAQ Accordion Section */}

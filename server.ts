@@ -13,10 +13,10 @@ async function startServer() {
   app.post("/api/chat", async (req, res) => {
     try {
       const { message, history } = req.body;
-      const key = process.env.GEMINI_API_KEY;
+      const key = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
       
       if (!key) {
-        return res.status(500).json({ error: "Gemini API key is not configured" });
+        return res.status(500).json({ error: "Gemini API key is not configured. Please set GEMINI_API_KEY or VITE_GEMINI_API_KEY." });
       }
       
       const ai = new GoogleGenAI({ 

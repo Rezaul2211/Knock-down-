@@ -32,16 +32,58 @@ export function AIChatWidget() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: userMessage.text, history: chatHistory })
       });
+      
       const data = await response.json();
       
-      if (data.error) {
-        throw new Error(data.error);
+      if (!response.ok || data.error) {
+        throw new Error(data.error || 'Server error');
       }
       
       setMessages(prev => [...prev, { role: 'ai', text: data.text }]);
-    } catch (err) {
-      console.error(err);
-      setMessages(prev => [...prev, { role: 'ai', text: isBn ? 'দুঃখিত, সংযোগ করতে সমস্যা হচ্ছে।' : 'Sorry, I am having trouble connecting right now.' }]);
+    } catch (err: any) {
+      console.error("AI Chat error:", err);
+      
+      // Check if client-side fallback is available via VITE_GEMINI_API_KEY
+      const clientKey = import.meta.env.VITE_GEMINI_API_KEY;
+      if (clientKey) {
+        try {
+          const { GoogleGenAI } = await import('@google/genai');
+          const ai = new GoogleGenAI({ apiKey: clientKey });
+          const formattedHistory = chatHistory.map(m => ({
+            role: m.role === 'ai' ? 'model' : 'user',
+            parts: [{ text: m.text }]
+          }));
+          const chat = ai.chats.create({
+            model: "gemini-3.6-flash",
+            config: {
+              systemInstruction: "You are a highly helpful and enthusiastic AI fashion assistant for Zopono Tailor. Zopono Tailor is an ultra-luxury, lightning-fast, and premium custom tailoring brand in Bangladesh. You MUST primarily answer in Bengali (বাংলা), though occasional English is fine. Always promote Zopono Tailor's premium quality, perfect fit guarantee, elegant designs, and excellent customer service. Be polite, friendly, and concise. Highlight that we do custom tailoring for Men, Women, and Kids with the finest materials.",
+            },
+            history: formattedHistory
+          });
+          const res = await chat.sendMessage({ message: userMessage.text });
+          setMessages(prev => [...prev, { role: 'ai', text: res.text }]);
+          return;
+        } catch (clientErr: any) {
+          console.error("Client fallback error:", clientErr);
+        }
+      }
+
+      const isKeyError = err?.message?.includes('GEMINI_API_KEY') || err?.message?.includes('configured');
+      if (isKeyError) {
+        setMessages(prev => [...prev, { 
+          role: 'ai', 
+          text: isBn 
+            ? 'Gemini API Key সেট করা নেই। Vercel এ Environment Variable এ GEMINI_API_KEY অথবা VITE_GEMINI_API_KEY যুক্ত করুন।' 
+            : 'Gemini API Key is missing. Please add GEMINI_API_KEY or VITE_GEMINI_API_KEY in Vercel Environment Variables.' 
+        }]);
+      } else {
+        setMessages(prev => [...prev, { 
+          role: 'ai', 
+          text: isBn 
+            ? 'দুঃখিত, সংযোগ করতে সমস্যা হচ্ছে। Vercel এ GEMINI_API_KEY যোগ করতে ভুলবেন না।' 
+            : 'Sorry, I am having trouble connecting right now. Make sure GEMINI_API_KEY is configured in Vercel.' 
+        }]);
+      }
     } finally {
       setIsLoading(false);
     }
