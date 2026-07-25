@@ -16,6 +16,7 @@ import { AdminDashboard } from './components/AdminDashboard';
 import { HomePage } from './pages/HomePage';
 import { CategoryPage } from './pages/CategoryPage';
 import { ProductDetailPage } from './pages/ProductDetailPage';
+import { FabricCatalogPage } from './pages/FabricCatalogPage';
 import { AIChatWidget } from './components/AIChatWidget';
 import { WhatsAppWidget } from './components/WhatsAppWidget';
 
@@ -28,6 +29,7 @@ function AnimatedRoutes() {
         <Route path="/" element={<HomePage key="home" />} />
         <Route path="/category/:type" element={<CategoryPage key={location.pathname} />} />
         <Route path="/product/:productId" element={<ProductDetailPage key={location.pathname} />} />
+        <Route path="/fabrics" element={<FabricCatalogPage key="fabrics" />} />
       </Routes>
     </AnimatePresence>
   );

@@ -1,5 +1,36 @@
 export type Language = 'en' | 'bn';
 
+export type FabricCategory = 'cotton' | 'silk' | 'wool' | 'linen' | 'velvet' | 'blend';
+export type PatternType = 'solid' | 'striped' | 'checkered' | 'jacquard' | 'embroidery' | 'herringbone';
+
+export interface FabricSwatch {
+  id: string;
+  code: string;
+  nameEn: string;
+  nameBn: string;
+  category: FabricCategory;
+  weavePattern: string;
+  patternType: PatternType;
+  primaryColor: string; // CSS color string or hex e.g. #0F172A
+  secondaryColor?: string;
+  highResImage: string;
+  textureImage: string; // Seamless texture pattern image
+  weightGsm: number;
+  threadCount: string;
+  origin: string;
+  sheen: 'matte' | 'subtle-glamour' | 'high-gloss' | 'satin-shine';
+  breathability: string;
+  suitableFor: string[]; // e.g., ['panjabi', 'suits', 'shirts', 'gowns']
+  pricePerYard: number;
+  surcharge: number; // Extra fee for applying this luxury fabric
+  descriptionEn: string;
+  descriptionBn: string;
+  careInstructionsEn: string;
+  careInstructionsBn: string;
+  tags: string[];
+  inStock: boolean;
+}
+
 export interface Product {
   id: string;
   titleEn: string;
@@ -13,6 +44,7 @@ export interface Product {
   isCustomizable: boolean;
   material?: string;
   color?: string;
+  defaultFabricId?: string;
 }
 
 export interface MeasurementProfile {
@@ -34,6 +66,7 @@ export interface MeasurementProfile {
     fitPreference: string;
     sleeveFinish: string;
   };
+  fabricSwatchId?: string;
 }
 
 export interface CartItem {
@@ -41,6 +74,8 @@ export interface CartItem {
   product: Product;
   quantity: number;
   measurements?: MeasurementProfile;
+  selectedFabric?: FabricSwatch;
+  customPrice?: number;
 }
 
 export interface Order {

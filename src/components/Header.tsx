@@ -396,6 +396,15 @@ export function Header() {
                 {t.kids || 'Kids'}
               </Link>
 
+              <Link 
+                to="/fabrics" 
+                onClick={() => setIsMobileMenuOpen(false)} 
+                className="hover:text-[#B8860B] transition-colors p-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 flex items-center gap-2 font-bold"
+              >
+                <Sparkles size={18} className="text-[#B8860B] shrink-0" />
+                <span>{isBn ? '৩ডি ফেব্রিক ক্যাটালগ (Fabric Studio)' : '3D Fabric Studio'}</span>
+              </Link>
+
               <a 
                 href="/#track-order" 
                 onClick={() => setIsMobileMenuOpen(false)} 

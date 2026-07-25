@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ShoppingBag, Ruler, Zap, ShieldCheck, Sparkles, Check, ArrowLeft, X } from 'lucide-react';
-import { Product } from '../types';
+import { ShoppingBag, Ruler, Zap, ShieldCheck, Sparkles, Check, ArrowLeft, X, Scissors, Eye } from 'lucide-react';
+import { Product, FabricSwatch } from '../types';
+import { fabricSwatches } from '../data/fabrics';
 import { useAppContext } from '../store/AppContext';
 import { useFlyingCart } from '../components/FlyingCartAnimation';
 import { translations } from '../i18n';
 import { MeasurementModal } from '../components/MeasurementModal';
 import { CheckoutModal } from '../components/CheckoutModal';
 import { SizeGuideModal } from '../components/SizeGuideModal';
+import { FabricStudioModal } from '../components/FabricStudioModal';
+import { FabricMagnifierModal } from '../components/FabricMagnifierModal';
 import { handleImageError } from '../lib/imageUtils';
 
 import { FAQAccordion } from '../components/FAQAccordion';
@@ -22,10 +25,13 @@ export function ProductDetailPage() {
   const isBn = language === 'bn';
   
   const [product, setProduct] = useState<Product | null>(null);
+  const [selectedFabric, setSelectedFabric] = useState<FabricSwatch>(fabricSwatches[0]);
   const [added, setAdded] = useState(false);
   const [showMeasurement, setShowMeasurement] = useState(false);
   const [showDirectCheckout, setShowDirectCheckout] = useState(false);
   const [showSizeGuide, setShowSizeGuide] = useState(false);
+  const [showFabricStudio, setShowFabricStudio] = useState(false);
+  const [inspectFabric, setInspectFabric] = useState<FabricSwatch | null>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
@@ -80,6 +86,7 @@ export function ProductDetailPage() {
   }
 
   const title = isBn ? product.titleBn : product.titleEn;
+  const calculatedPrice = product.price + selectedFabric.surcharge;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
@@ -89,14 +96,26 @@ export function ProductDetailPage() {
       product.image
     );
 
-    addToCart({ id: crypto.randomUUID(), product, quantity: 1 }, false);
+    addToCart({
+      id: crypto.randomUUID(),
+      product,
+      quantity: 1,
+      selectedFabric,
+      customPrice: calculatedPrice
+    }, false);
 
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   };
 
   const handleDirectBuyNow = () => {
-    addToCart({ id: crypto.randomUUID(), product, quantity: 1 }, false);
+    addToCart({
+      id: crypto.randomUUID(),
+      product,
+      quantity: 1,
+      selectedFabric,
+      customPrice: calculatedPrice
+    }, false);
     setShowDirectCheckout(true);
   };
 
@@ -110,17 +129,27 @@ export function ProductDetailPage() {
         />
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto px-4 py-6 sm:px-6 lg:px-8 font-sans">
         {/* Main Content Area */}
         <div className="bg-white rounded-3xl shadow-lg border border-[#6A4C6D]/15 overflow-hidden">
           <div className="grid grid-cols-1 md:grid-cols-2">
           
-          {/* Left Column: Premium Image Preview */}
+          {/* Left Column: Premium Image Preview & Swatch Blend */}
           <div className="relative bg-[#EFECE6] h-72 sm:h-96 md:h-full md:min-h-[500px] overflow-hidden flex items-center justify-center shrink-0">
             <ImageMagnifier
               src={product.image}
               alt={title}
             />
+
+            {/* Selected Fabric Badge Overlay on image */}
+            <div className="absolute bottom-4 left-4 bg-slate-900/85 backdrop-blur-md text-white text-xs px-3 py-1.5 rounded-2xl border border-white/20 flex items-center gap-2 shadow-lg z-20">
+              <span className="w-3.5 h-3.5 rounded-full border border-white/30" style={{ backgroundColor: selectedFabric.primaryColor }} />
+              <div>
+                <span className="font-bold block">{selectedFabric.nameEn}</span>
+                <span className="text-[10px] text-slate-300 block">{selectedFabric.origin}</span>
+              </div>
+            </div>
+
             {/* Category Badges */}
             <div className="absolute top-4 left-4 flex flex-wrap gap-2 z-20">
               <span className="bg-[#1E293B]/90 text-white backdrop-blur-md text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-xs">
@@ -142,7 +171,7 @@ export function ProductDetailPage() {
             </button>
           </div>
 
-          {/* Right Column: Premium Details & Actions */}
+          {/* Right Column: Premium Details & Custom Fabric Picker */}
           <div className="p-6 sm:p-10 flex flex-col bg-white">
             <div className="flex-1 space-y-6">
               
@@ -153,7 +182,7 @@ export function ProductDetailPage() {
                 </span>
                 <span className="text-xs bg-[#6A4C6D]/10 text-[#6A4C6D] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1">
                   <Sparkles className="w-3.5 h-3.5 text-[#E8A5B8]" />
-                  <span>{isBn ? 'কাস্টম' : 'Custom'}</span>
+                  <span>{isBn ? 'কাস্টম টেইলরড' : 'Custom Tailored'}</span>
                 </span>
               </div>
 
@@ -166,11 +195,13 @@ export function ProductDetailPage() {
               <div className="flex items-center justify-between gap-4 flex-wrap">
                 <div className="flex items-baseline gap-2">
                   <span className="text-3xl sm:text-4xl font-serif italic font-bold text-[#6A4C6D]">
-                    ৳ {product.price}
+                    ৳ {calculatedPrice.toLocaleString()}
                   </span>
-                  <span className="text-sm text-[#1E293B]/50 font-medium">
-                    {isBn ? '(ভ্যাট সহ)' : '(VAT included)'}
-                  </span>
+                  {selectedFabric.surcharge > 0 && (
+                    <span className="text-xs text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                      (+৳{selectedFabric.surcharge} {isBn ? 'লাক্সারি ফেব্রিক' : 'Luxury Fabric'})
+                    </span>
+                  )}
                 </div>
 
                 {/* Size Guide Popup Trigger Button */}
@@ -184,20 +215,61 @@ export function ProductDetailPage() {
                 </button>
               </div>
 
-              {/* Material & Specifications Card */}
-              <div className="bg-[#FAF9F6] p-5 rounded-2xl border border-[#6A4C6D]/12 space-y-2">
-                <div className="text-xs font-bold uppercase tracking-wider text-[#6A4C6D]">
-                  {isBn ? 'উপাদান ও বৈশিষ্ট্য' : 'Material & Specifications'}
+              {/* Fabric Swatch Selector Bar */}
+              <div className="bg-[#FAF9F6] p-4 sm:p-5 rounded-2xl border border-[#6A4C6D]/15 space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold uppercase tracking-wider text-[#6A4C6D] flex items-center gap-1.5">
+                    <Scissors className="w-4 h-4 text-amber-600" />
+                    <span>{isBn ? 'পছন্দের ফেব্রিক সোয়াচ নির্বাচন করুন:' : 'Select Fabric Swatch:'}</span>
+                  </label>
+
+                  <button
+                    onClick={() => setShowFabricStudio(true)}
+                    className="text-xs font-bold text-amber-800 hover:text-amber-950 underline flex items-center gap-1"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                    <span>{isBn ? '৩ডি স্টুডিওতে টেস্ট করুন' : '3D Fabric Studio'}</span>
+                  </button>
                 </div>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-[#1E293B]/60">{isBn ? 'উপাদান:' : 'Fabric Material:'} </span>
-                    <span className="font-semibold text-[#1E293B]">{product.material || 'Premium Cotton'}</span>
-                  </div>
-                  <div>
-                    <span className="text-[#1E293B]/60">{isBn ? 'রং:' : 'Color Shade:'} </span>
-                    <span className="font-semibold text-[#1E293B]">{product.color || 'Signature'}</span>
-                  </div>
+
+                {/* Swatches horizontal carousel */}
+                <div className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-none">
+                  {fabricSwatches.slice(0, 6).map(fab => (
+                    <button
+                      key={fab.id}
+                      onClick={() => setSelectedFabric(fab)}
+                      className={`relative flex items-center gap-2 p-2 rounded-xl border transition-all text-left shrink-0 ${
+                        selectedFabric.id === fab.id
+                          ? 'bg-amber-100/80 border-amber-600 shadow-xs ring-2 ring-amber-500/30'
+                          : 'bg-white border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      <img
+                        src={fab.textureImage}
+                        alt={fab.nameEn}
+                        referrerPolicy="no-referrer"
+                        className="w-8 h-8 rounded-lg object-cover border border-slate-200"
+                      />
+                      <div className="text-[11px]">
+                        <span className="font-bold text-slate-800 block leading-tight max-w-[90px] truncate">{fab.nameEn}</span>
+                        <span className="text-[9px] text-slate-500 block uppercase">{fab.origin}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Active fabric details pill */}
+                <div className="flex items-center justify-between text-xs pt-2 border-t border-[#6A4C6D]/10">
+                  <span className="text-slate-600">
+                    <strong>{selectedFabric.nameEn}</strong> &bull; {selectedFabric.weightGsm} GSM &bull; {selectedFabric.threadCount}
+                  </span>
+                  <button
+                    onClick={() => setInspectFabric(selectedFabric)}
+                    className="text-[10px] text-amber-700 font-bold hover:underline flex items-center gap-1"
+                  >
+                    <Eye className="w-3 h-3" />
+                    <span>{isBn ? 'মাইক্রো জুম' : 'Micro Zoom'}</span>
+                  </button>
                 </div>
               </div>
 
@@ -211,12 +283,21 @@ export function ProductDetailPage() {
             {/* Action Buttons Section */}
             <div className="pt-8 mt-8 border-t border-[#6A4C6D]/10 space-y-4">
               
+              {/* 3D Visualizer Full Banner Button */}
+              <button
+                onClick={() => setShowFabricStudio(true)}
+                className="w-full py-3 px-4 rounded-xl text-xs font-bold uppercase tracking-wider bg-amber-50 text-amber-900 border border-amber-300 hover:bg-amber-100 transition-all flex items-center justify-center gap-2 shadow-2xs cursor-pointer"
+              >
+                <Sparkles className="w-4 h-4 text-amber-600" />
+                <span>{isBn ? '৩ডি স্টুডিওতে ফেব্রিকের ফিট ও আলো পরীক্ষা করুন' : 'Test Fabric Fit & Lighting in 3D Studio'}</span>
+              </button>
+
               {/* 2 Main Buttons: Add to bag & Measurement */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {/* 1. Add to bag */}
                 <button
                   onClick={handleAddToCart}
-                  className={`w-full py-4 px-4 rounded-xl text-sm font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-sm ${
+                  className={`w-full py-4 px-4 rounded-xl text-sm font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer ${
                     added
                       ? 'bg-emerald-700 text-white'
                       : 'bg-[#1E293B] text-white hover:bg-[#6A4C6D]'
@@ -238,7 +319,7 @@ export function ProductDetailPage() {
                 {/* 2. Measurement */}
                 <button
                   onClick={() => setShowMeasurement(true)}
-                  className="w-full py-4 px-4 rounded-xl text-sm font-bold uppercase tracking-wider bg-[#FAF9F6] text-[#6A4C6D] border border-[#6A4C6D]/30 hover:bg-[#6A4C6D] hover:text-white transition-all flex items-center justify-center gap-2 shadow-2xs group"
+                  className="w-full py-4 px-4 rounded-xl text-sm font-bold uppercase tracking-wider bg-[#FAF9F6] text-[#6A4C6D] border border-[#6A4C6D]/30 hover:bg-[#6A4C6D] hover:text-white transition-all flex items-center justify-center gap-2 shadow-2xs group cursor-pointer"
                 >
                   <Ruler className="w-5 h-5 text-[#6A4C6D] group-hover:text-white" />
                   <span>{isBn ? 'মেজারমেন্ট' : 'Measurement'}</span>
@@ -248,7 +329,7 @@ export function ProductDetailPage() {
               {/* 3. Checkout */}
               <button
                 onClick={handleDirectBuyNow}
-                className="w-full py-3.5 px-4 rounded-xl text-sm font-bold uppercase tracking-wider bg-[#E8A5B8] text-white hover:bg-[#d88ba0] transition-all flex items-center justify-center gap-2 shadow-xs"
+                className="w-full py-3.5 px-4 rounded-xl text-sm font-bold uppercase tracking-wider bg-[#E8A5B8] text-white hover:bg-[#d88ba0] transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer"
               >
                 <Zap className="w-5 h-5 fill-current" />
                 <span>{isBn ? 'চেকআউট' : 'Checkout'}</span>
@@ -272,7 +353,7 @@ export function ProductDetailPage() {
       {/* Direct Checkout Modal Popup */}
       {showDirectCheckout && (
         <CheckoutModal
-          total={product.price * 1}
+          total={calculatedPrice}
           onClose={() => setShowDirectCheckout(false)}
         />
       )}
@@ -285,7 +366,26 @@ export function ProductDetailPage() {
           onClose={() => setShowSizeGuide(false)}
         />
       )}
+
+      {/* Fabric 3D Studio Modal */}
+      {showFabricStudio && (
+        <FabricStudioModal
+          initialProduct={product}
+          initialFabric={selectedFabric}
+          onClose={() => setShowFabricStudio(false)}
+        />
+      )}
+
+      {/* Fabric Magnifier Inspect Modal */}
+      {inspectFabric && (
+        <FabricMagnifierModal
+          fabric={inspectFabric}
+          onClose={() => setInspectFabric(null)}
+          onApplyFabric={(fab) => setSelectedFabric(fab)}
+        />
+      )}
     </div>
     </>
   );
 }
+
