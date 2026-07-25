@@ -1,0 +1,8 @@
+{
+  "name": "Remix: Zopono Tailor",
+  "description": "Ultra-luxury, lightning-fast, mobile-first custom tailoring e-commerce application.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
